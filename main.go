@@ -11,7 +11,7 @@ import (
 	"text/template"
 )
 
-var inputdata string
+var inputdatas []string
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -27,14 +27,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func inputHandler(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println("method:", r.Method) //get request method
 	if r.Method == "GET" {
 		t, _ := template.ParseFiles("login.gtpl")
 		t.Execute(w, nil)
 	} else {
 		r.ParseForm()
-		// logic part of log in
-		fmt.Println("input:", r.Form["name"])
+
 		getdata := r.Form["name"]
 		//===============process data input========
 		process(getdata)
@@ -43,15 +41,7 @@ func inputHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func outputHandler(w http.ResponseWriter, r *http.Request) {
-	// id := r.URL.Query().Get("id")
-	//id := "xyzabc"
-	///import user input here
-	if userinput == "" {
-		http.Error(w, "The id query parameter is missing", http.StatusBadRequest)
-		return
-	}
-
-	fmt.Fprintf(w, "<h1>The user id is: %s</h1>", userinput)
+	fmt.Fprintf(w, "<h1>The count word is: %s</h1>", inputdatas)
 }
 
 func process(getdata []string) {
@@ -71,35 +61,17 @@ func process(getdata []string) {
 	userinput = re.ReplaceAllString(userinput, " ")
 	userinput = strings.ToLower(userinput)
 
+	fmt.Println(userinput)
+
 	//====================count word and append====================
 
 	for word, occur := range countsimilarword(userinput) {
-
 		occurance := strconv.Itoa(occur)
-
-		var userinput []string
-
-		userinput = append(userinput, word, occurance)
-
-		fmt.Println(userinput) //need to print
-
-		//inputdata = userinput
-		//hii(userinput)
+		inputdatas = append(inputdatas, word, occurance)
 
 	}
 
 }
-
-// func hii(userinput []string) {
-
-// 	if userinput == "" {
-// 		http.Error(w, "The id query parameter is missing", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	fmt.Fprintf(w, "<h1>The user id is: %s</h1>", userinput)
-
-// }
 
 // ======================count similar word===========
 func countsimilarword(st string) map[string]int {
@@ -120,15 +92,15 @@ func countsimilarword(st string) map[string]int {
 }
 
 func main() {
+
 	http.HandleFunc("/index", indexHandler) // welcome page
 
-	http.HandleFunc("/input", inputHandler)
-	http.HandleFunc("/output", outputHandler)
+	http.HandleFunc("/input", inputHandler)   //input page
+	http.HandleFunc("/output", outputHandler) //output page
 
 	err := http.ListenAndServe(":8000", nil) // setting listening port
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 
-	// fmt.Println(userinput)
 }
