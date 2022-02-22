@@ -41,7 +41,7 @@ func inputHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func outputHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "<h1>The count word is: %s</h1>", inputdatas)
+	fmt.Fprintf(w, "The count is: %s", inputdatas)
 }
 
 func process(getdata []string) {
@@ -64,10 +64,18 @@ func process(getdata []string) {
 	fmt.Println(userinput)
 
 	//====================count word and append====================
+	i := MaxWordsInSentences(userinput)
+	fmt.Println(i)
 
 	for word, occur := range countsimilarword(userinput) {
+
+		//  ​sort​.​Slice​(​WC​, ​func​(​i​, ​j​ ​int​) ​bool​ {
+		// 		​                ​return​ ​WC​[​i​].​count​ ​>​ ​WC​[​j​].​count
+		// 		​        })
+
 		occurance := strconv.Itoa(occur)
-		inputdatas = append(inputdatas, word, occurance)
+
+		inputdatas = append(inputdatas, "word:", word, "occurs", occurance, "times,")
 
 	}
 
@@ -95,12 +103,56 @@ func main() {
 
 	http.HandleFunc("/index", indexHandler) // welcome page
 
-	http.HandleFunc("/input", inputHandler)   //input page
-	http.HandleFunc("/output", outputHandler) //output page
+	http.HandleFunc("/input", inputHandler)
+	http.HandleFunc("/output", outputHandler)
 
 	err := http.ListenAndServe(":8000", nil) // setting listening port
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+
+	fmt.Println(inputdatas)
+}
+
+// ​func​ ​PostRequest​(​w​ http.​ResponseWriter​, ​r​ ​*​http.​Request​) {
+// 	​        ​content​, ​_​ ​:=​ ​ioutil​.​ReadAll​(​r​.​Body​)
+// 	​         ​s​ ​:=​ []​string​{​string​(​content​)}
+// 	​        ​new_​ ​:=​ ​WordC​(​s​)
+// 	​        ​WC​ ​:=​ ​make​([]​CountW​, ​0​, ​len​(​new_​))
+// 	​        ​for​ ​key​, ​val​ ​:=​ ​range​ ​new_​ {
+// 	​                ​WC​ ​=​ ​append​(​WC​, ​CountW​{​word​: ​key​, ​count​: ​val​})
+// 	​        }
+
+// 	​        ​sort​.​Slice​(​WC​, ​func​(​i​, ​j​ ​int​) ​bool​ {
+// 	​                ​return​ ​WC​[​i​].​count​ ​>​ ​WC​[​j​].​count
+// 	​        })
+// 	​        ​for​ ​i​ ​:=​ ​0​; ​i​ ​<​ ​len​(​WC​) ​&&​ ​i​ ​<​ ​10​; ​i​++​ {
+// 	​                ​count_​ ​:=​ ​CountWs​{​CountW_​{​WC​[​i​].​word​, ​WC​[​i​].​count​}}
+// 	​                ​json​.​Marshal​(​count_​)
+// 	​                ​json​.​NewEncoder​(​w​).​Encode​(​count_​)
+// 	​        }
+// 	​}
+func MaxWordsInSentences(S string) (result int) {
+
+	r, _ := regexp.Compile("[.||?||!]")
+	count := strings.Count(S, ".") + strings.Count(S, "!") + strings.Count(S, "?") // Total sentaces
+
+	for i := 0; i < count; i++ {
+		sentence := r.Split(S, count)[i]
+		splitSentence := strings.Split(sentence, " ")
+
+		var R []string
+		for _, str := range splitSentence {
+			if str != "" {
+				R = append(R, str)
+			}
+		}
+
+		if len(R) > result {
+			result = len(R)
+		}
+	}
+
+	return
 
 }
